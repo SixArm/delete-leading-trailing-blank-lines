@@ -1,0 +1,34 @@
+#!/usr/bin/awk -f
+
+# Delete leading blank lines and trailing blank lines
+#
+# Dicussion:
+# <https://stackoverflow.com/questions/7359527/removing-trailing-starting-newlines-with-sed-awk-tr-and-friends>
+#
+# Credit: Glenn Jackman
+# <https://stackoverflow.com/users/7552/glenn-jackman>
+#
+# We also considered alternate implementations, such as via sed:
+#
+#     sed -e :a -e '/[^[:blank:]]/,$!d; /^[[:space:]]*$/{ $d; N; ba' -e '}'
+#
+# We prefer the awk solution here, because it handles large files better,
+# and runs in a single pass through the data, and is efficient for handling
+# runs of empty lines, and is easier to understand and adapt for new needs.
+
+# Match a line that contains any non-space character
+/[^[:space:]]/ {
+    # Set the flag to begin printing lines
+    printing_flag=1;
+    # Print any accumulated empty lines 
+    for (i=1; i<=blank_line_count; i++) print "";
+    # reset the blank line count because all are now printed
+    blank_line_count=0;
+    # print the current line
+    print;
+}
+# Match an interior line that is empty
+printing_flag && /^[[:space:]]*$/ {
+    # Increment the count of interior blank lines
+    blank_line_count++;
+}
